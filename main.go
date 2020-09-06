@@ -4,6 +4,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -48,69 +49,39 @@ func ReadFromDecodeTo(from string, to string) error {
 }
 
 func main() {
+	var inputFile, outputFile string
+	var compress, decompress bool
+	flag.StringVar(&inputFile, "in", "", "(required) name of input file")
+	flag.StringVar(&outputFile, "out", "/dev/stdout", "(optional) name of output file, default stdout")
+	flag.BoolVar(&compress, "c", false, "compress infile")
+	flag.BoolVar(&decompress, "d", false, "decompress infile")
+	flag.Parse()
 	// inputFile := "./100-0.txt"
-	outputFile := "./testingfoo.txt"
-	stdOut := "/dev/stdout"
+	// outputFile := "./testingfoo.txt"
+	// stdOut := "/dev/stdout"
 	// fooOut := "./foo.txt"
-
-	// err := ReadFromEncodeTo(inputFile, outputFile)
-	// if err != nil {
-	// 	log.Fatalf("rfwt err: %s", err)
-	// }
-
-	err := ReadFromDecodeTo(outputFile, stdOut)
-	if err != nil {
-		log.Fatalf("rfwt err: %s", err)
+	if inputFile == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+	if outputFile == "" {
+		log.Printf("no output file specified, using stdout")
 	}
 
-	// err = ReadFromDecodeTo(outputFile, fooOut)
-	// if err != nil {
-	// 	log.Fatalf("rfwt err: %s", err)
-	// }
+	if compress && decompress || !(compress || decompress) {
+		flag.Usage()
+		os.Exit(1)
+	}
 
-	// , err := os.Open("./test.txt")
-	// if err != nil {
-	// 	log.Fatalf("file could not be opened: %s", err)
-	// }
-
-	// // H, err := huffman.NewHufflepuffInitFile(f)
-	// // if err != nil {
-	// // 	log.Fatalf("could not init hufflepuff: %s", err)
-	// // }
-
-	// h, err := huffman.NewHufflepuffFromFile("./testingfoo.txt")
-	// if err != nil {
-	// 	log.Fatalf("from file err: %s", err)
-	// }
-	// dec, err := h.DecodeFromFile()
-	// if err != nil {
-	// 	log.Fatalf("decode from file err: %s", err)
-	// }
-	// fmt.Print(string(dec))
-
-	// enc, err := H.Encode()
-	// if err != nil {
-	// 	log.Fatalf("encoding err: %s", err)
-	// }
-
-	// fmt.Printf("%s", string(enc))
-
-	// for _, c := range enc {
-	// 	fmt.Printf("%b", c)
-	// }
-	// fmt.Printf("%x ", string(enc))
-	// v := fmt.Sprintf("%03b", enc)
-	// log.Println(v)
-	// if err := H.ToFile("./testingfoo.txt"); err != nil {
-	// 	log.Fatalf("tf err: %s", err)
-	// }
-
-	// dec, err := H.DecodeBytes(enc)
-	// if err != nil {
-	// 	log.Fatalf("encoding err: %s", err)
-	// }
-
-	// fmt.Print(string(dec))
-
-	// log.Printf("%+v", H.GetDict())
+	if compress {
+		err := ReadFromEncodeTo(inputFile, outputFile)
+		if err != nil {
+			log.Fatalf("ReadFromEncodeTo err: %s", err)
+		}
+	} else if decompress {
+		err := ReadFromDecodeTo(inputFile, outputFile)
+		if err != nil {
+			log.Fatalf("ReadFromDecodeTo err: %s", err)
+		}
+	}
 }
