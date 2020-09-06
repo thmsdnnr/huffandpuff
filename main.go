@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/thmsdnnr/hufflepuff/v2/huffman"
+	"github.com/thmsdnnr/huffandpuff/v2/huffman"
 )
 
 // ReadFromEncodeTo reads from file encoding to to file.
@@ -18,9 +18,9 @@ func ReadFromEncodeTo(from string, to string) error {
 	if err != nil {
 		return fmt.Errorf("file could not be opened: %s", err)
 	}
-	H, err := huffman.NewHufflepuffInitFile(f)
+	H, err := huffman.NewHuffandpuffInitFile(f)
 	if err != nil {
-		return fmt.Errorf("could not init hufflepuff: %s", err)
+		return fmt.Errorf("could not init Huffandpuff: %s", err)
 	}
 	if err := H.ToFile(to); err != nil {
 		return err
@@ -30,7 +30,7 @@ func ReadFromEncodeTo(from string, to string) error {
 
 // ReadFromDecodeTo reads encoded from from file, decoding to to file.
 func ReadFromDecodeTo(from string, to string) error {
-	h, err := huffman.NewHufflepuffFromFile(from)
+	h, err := huffman.NewHuffandpuffFromFile(from)
 	if err != nil {
 		return err
 	}

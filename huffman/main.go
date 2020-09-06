@@ -86,7 +86,7 @@ func (k keyCountList) Less(i, j int) bool { return k[i].count < k[j].count }
 func (k keyCountList) Swap(i, j int)      { k[i], k[j] = k[j], k[i] }
 
 // buildCodeWordDict
-func (h *Hufflepuff) buildCodeWordDict() {
+func (h *Huffandpuff) buildCodeWordDict() {
 	pq := make(PriorityQueue, len(h.freqDict))
 	i := 0
 	for _, v := range h.keyCountList {
@@ -128,7 +128,7 @@ func (h *Hufflepuff) buildCodeWordDict() {
 }
 
 // buildFrequencyDict populates h.freqDict with the count of occurences of each rune.
-func (h *Hufflepuff) buildFrequencyDict() error {
+func (h *Huffandpuff) buildFrequencyDict() error {
 	if h.freqDict == nil {
 		h.freqDict = map[rune]int{}
 	}
@@ -164,7 +164,7 @@ type compressedHeader struct {
 	HuffmanDictionary map[string]rune `json:"hd"`
 }
 
-func (h *Hufflepuff) getHeader() ([]byte, error) {
+func (h *Huffandpuff) getHeader() ([]byte, error) {
 	writeBuf := bytes.NewBuffer(magicBytesHeader)
 	header, err := h.headerToBytes()
 	if err != nil {
@@ -176,7 +176,7 @@ func (h *Hufflepuff) getHeader() ([]byte, error) {
 }
 
 // ToFile saves the huffman encoded data to file at filepath.
-func (h *Hufflepuff) ToFile(filepath string) error {
+func (h *Huffandpuff) ToFile(filepath string) error {
 	header, err := h.getHeader()
 	if err != nil {
 		return err
@@ -204,8 +204,8 @@ func (h *Hufflepuff) ToFile(filepath string) error {
 	return h.EncodeToFile(fPtr)
 }
 
-// headerToBytes writes hufflepuff header to bytes.
-func (h *Hufflepuff) headerToBytes() ([]byte, error) {
+// headerToBytes writes Huffandpuff header to bytes.
+func (h *Huffandpuff) headerToBytes() ([]byte, error) {
 	ch := &compressedHeader{
 		HuffmanDictionary: h.decodingDict,
 	}
@@ -213,11 +213,11 @@ func (h *Hufflepuff) headerToBytes() ([]byte, error) {
 	return htb, err
 }
 
-func (h *Hufflepuff) getDictionaryJSON() ([]byte, error) {
+func (h *Huffandpuff) getDictionaryJSON() ([]byte, error) {
 	return json.Marshal(h.decodingDict)
 }
 
-func (h *Hufflepuff) writeCodeword(w *bitstream.BitWriter, cw string) error {
+func (h *Huffandpuff) writeCodeword(w *bitstream.BitWriter, cw string) error {
 	for _, c := range cw {
 		if c == '1' {
 			if err := w.WriteBit(true); err != nil {
@@ -233,7 +233,7 @@ func (h *Hufflepuff) writeCodeword(w *bitstream.BitWriter, cw string) error {
 }
 
 // EncodeToFile encodes to a file directly.
-func (h *Hufflepuff) EncodeToFile(f *os.File) error {
+func (h *Huffandpuff) EncodeToFile(f *os.File) error {
 	defer f.Close()
 	if !h.hasInit {
 		return fmt.Errorf("Encode called without initialization")
@@ -260,11 +260,11 @@ func (h *Hufflepuff) EncodeToFile(f *os.File) error {
 	return nil
 }
 
-// func (h *Hufflepuff) hasMagicBytes(f *os.File) bool {
+// func (h *Huffandpuff) hasMagicBytes(f *os.File) bool {
 // 	ctRead, err := f.Read(len(magicBytesHeader))
 // }
 
-func (h *Hufflepuff) getFilePtr() (*os.File, error) {
+func (h *Huffandpuff) getFilePtr() (*os.File, error) {
 	if h.filename == "" {
 		return nil, fmt.Errorf("filename not set")
 	}
@@ -278,7 +278,7 @@ func (h *Hufflepuff) getFilePtr() (*os.File, error) {
 }
 
 // FromFile encodes to a file directly.
-func (h *Hufflepuff) FromFile(filename string) error {
+func (h *Huffandpuff) FromFile(filename string) error {
 	h.filename = filename
 	fPtr, err := h.getFilePtr()
 	if err != nil {
@@ -312,12 +312,12 @@ func (h *Hufflepuff) FromFile(filename string) error {
 	return nil
 }
 
-func (h *Hufflepuff) GetDict() map[string]rune {
+func (h *Huffandpuff) GetDict() map[string]rune {
 	return h.decodingDict
 }
 
-// init initializes the hufflepuff.
-func (h *Hufflepuff) init() error {
+// init initializes the Huffandpuff.
+func (h *Huffandpuff) init() error {
 	h.codeDict = map[string]int64{}
 	h.decodingDict = map[string]rune{}
 	h.encodingDict = map[rune]string{}
@@ -336,18 +336,18 @@ func (h *Hufflepuff) init() error {
 }
 
 // InitBytes initializes the encoder/decoder from bytes b.
-func (h *Hufflepuff) InitBytes(b []byte) error {
+func (h *Huffandpuff) InitBytes(b []byte) error {
 	h.encStr = b
 	return h.init()
 }
 
 // InitFile initializes the encoder/decoder from file f.
-func (h *Hufflepuff) InitFile(f *os.File) error {
+func (h *Huffandpuff) InitFile(f *os.File) error {
 	h.file = f
 	return h.init()
 }
 
-func (h *Hufflepuff) getReader() (*bufio.Reader, error) {
+func (h *Huffandpuff) getReader() (*bufio.Reader, error) {
 	if h.encStr != nil {
 		return bufio.NewReader(bytes.NewBuffer(h.encStr)), nil
 	}
@@ -361,7 +361,7 @@ func (h *Hufflepuff) getReader() (*bufio.Reader, error) {
 }
 
 // Encode encodes the string b using huffman coding.
-func (h *Hufflepuff) Encode() ([]byte, error) {
+func (h *Huffandpuff) Encode() ([]byte, error) {
 	if !h.hasInit {
 		return nil, fmt.Errorf("Encode called without initialization")
 	}
@@ -389,7 +389,7 @@ func (h *Hufflepuff) Encode() ([]byte, error) {
 }
 
 // DecodeFromFile decodes the huffman coded string d given h.decodingDict.
-func (h *Hufflepuff) DecodeFromFile() ([]byte, error) {
+func (h *Huffandpuff) DecodeFromFile() ([]byte, error) {
 	filePtr, err := h.getFilePtr()
 	if err != nil {
 		return nil, err
@@ -439,7 +439,7 @@ func (h *Hufflepuff) DecodeFromFile() ([]byte, error) {
 }
 
 // DecodeBytes decodes the huffman coded string d given h.decodingDict.
-func (h *Hufflepuff) DecodeBytes(d []byte) ([]byte, error) {
+func (h *Huffandpuff) DecodeBytes(d []byte) ([]byte, error) {
 	var buf bytes.Buffer
 	match := ""
 	bnw := bitstream.NewReader(bytes.NewBuffer(d))
@@ -481,8 +481,8 @@ func (h *Hufflepuff) DecodeBytes(d []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Hufflepuff represents an instance of a Huffman Decoder.
-type Hufflepuff struct {
+// Huffandpuff represents an instance of a Huffman Decoder.
+type Huffandpuff struct {
 	encodedOffset int
 	filename      string
 	hasInit       bool
@@ -497,33 +497,33 @@ type Hufflepuff struct {
 	bytesWritten  int64
 }
 
-// NewHufflepuffInitBytes returns an initialized Hufflepuff with bytes s.
-func NewHufflepuffInitBytes(s []byte) (*Hufflepuff, error) {
-	var th Hufflepuff
+// NewHuffandpuffInitBytes returns an initialized Huffandpuff with bytes s.
+func NewHuffandpuffInitBytes(s []byte) (*Huffandpuff, error) {
+	var th Huffandpuff
 	if err := th.InitBytes(s); err != nil {
 		return nil, err
 	}
 	return &th, nil
 }
 
-// NewHufflepuffInitFile initializes Hufflepuff with a file handle.
-func NewHufflepuffInitFile(f *os.File) (*Hufflepuff, error) {
+// NewHuffandpuffInitFile initializes Huffandpuff with a file handle.
+func NewHuffandpuffInitFile(f *os.File) (*Huffandpuff, error) {
 	if f == nil {
-		return nil, fmt.Errorf("NewHufflepuffInitReader called with nil file")
+		return nil, fmt.Errorf("NewHuffandpuffInitReader called with nil file")
 	}
-	var h Hufflepuff
+	var h Huffandpuff
 	if err := h.InitFile(f); err != nil {
 		return nil, err
 	}
 	return &h, nil
 }
 
-// NewHufflepuffFromFile loads a hufflepuff encoded file from file filepath
-func NewHufflepuffFromFile(filepath string) (*Hufflepuff, error) {
+// NewHuffandpuffFromFile loads a Huffandpuff encoded file from file filepath
+func NewHuffandpuffFromFile(filepath string) (*Huffandpuff, error) {
 	if filepath == "" {
-		return nil, fmt.Errorf("NewHufflepuffFromFile called with empty filepath")
+		return nil, fmt.Errorf("NewHuffandpuffFromFile called with empty filepath")
 	}
-	var h Hufflepuff
+	var h Huffandpuff
 	if err := h.FromFile(filepath); err != nil {
 		return nil, err
 	}
@@ -536,9 +536,9 @@ func main() {
 		log.Fatalf("file could not be opened: %s", err)
 	}
 
-	H, err := NewHufflepuffInitFile(f)
+	H, err := NewHuffandpuffInitFile(f)
 	if err != nil {
-		log.Fatalf("could not init hufflepuff: %s", err)
+		log.Fatalf("could not init Huffandpuff: %s", err)
 	}
 
 	enc, err := H.Encode()

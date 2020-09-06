@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestHufflepuffEncodeDecode(t *testing.T) {
+func TestHuffandpuffEncodeDecode(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Input    []byte
@@ -64,8 +64,8 @@ func TestHufflepuffEncodeDecode(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			// t.Parallel()
-			H, err := NewHufflepuffInitBytes(tc.Input)
+			t.Parallel()
+			H, err := NewHuffandpuffInitBytes(tc.Input)
 			if err != nil {
 				t.Errorf("got Init err %s want nil", err)
 			}

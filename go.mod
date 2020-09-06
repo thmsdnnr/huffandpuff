@@ -1,4 +1,4 @@
-module github.com/thmsdnnr/hufflepuff/v2
+module github.com/thmsdnnr/huffandpuff/v2
 
 go 1.15
 

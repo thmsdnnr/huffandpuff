@@ -5,7 +5,7 @@ cwd="$(pwd)"
 testFile="$cwd/testFile$(date +'%s')"
 testEnc="$cwd/testEncFile$(date +'%s')"
 testDec="$cwd/testDecFile$(date +'%s')"
-HBIN="$cwd/hufflepuff"
+HBIN="$cwd/huffandpuff"
 
 cat << EOF > "$testFile"
 This is a test file blah blah blah
