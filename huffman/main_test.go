@@ -64,7 +64,7 @@ func TestHufflepuffEncodeDecode(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			H, err := NewHufflepuffInitBytes(tc.Input)
 			if err != nil {
 				t.Errorf("got Init err %s want nil", err)

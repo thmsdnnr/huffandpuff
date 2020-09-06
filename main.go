@@ -48,25 +48,25 @@ func ReadFromDecodeTo(from string, to string) error {
 }
 
 func main() {
-	inputFile := "./test.txt"
+	// inputFile := "./100-0.txt"
 	outputFile := "./testingfoo.txt"
 	stdOut := "/dev/stdout"
-	fooOut := "./foo.txt"
+	// fooOut := "./foo.txt"
 
-	err := ReadFromEncodeTo(inputFile, outputFile)
+	// err := ReadFromEncodeTo(inputFile, outputFile)
+	// if err != nil {
+	// 	log.Fatalf("rfwt err: %s", err)
+	// }
+
+	err := ReadFromDecodeTo(outputFile, stdOut)
 	if err != nil {
 		log.Fatalf("rfwt err: %s", err)
 	}
 
-	err = ReadFromDecodeTo(outputFile, stdOut)
-	if err != nil {
-		log.Fatalf("rfwt err: %s", err)
-	}
-
-	err = ReadFromDecodeTo(outputFile, fooOut)
-	if err != nil {
-		log.Fatalf("rfwt err: %s", err)
-	}
+	// err = ReadFromDecodeTo(outputFile, fooOut)
+	// if err != nil {
+	// 	log.Fatalf("rfwt err: %s", err)
+	// }
 
 	// , err := os.Open("./test.txt")
 	// if err != nil {

@@ -11,7 +11,11 @@ import (
 	"os"
 	"sort"
 	"strings"
+
+	bitstream "github.com/dgryski/go-bitstream"
 )
+
+const runeEOF = '见'
 
 // HuffmanCoder represents a huffman encoding object.
 type HuffmanCoder interface {
@@ -133,6 +137,8 @@ func (h *Hufflepuff) buildFrequencyDict() error {
 	if err != nil {
 		return err
 	}
+	h.freqDict[runeEOF] = 1
+	kvs[runeEOF] = keyCount{key: runeEOF, count: 1}
 	c, _, err := r.ReadRune()
 	for err != io.EOF {
 		if _, ok := h.freqDict[c]; !ok {
@@ -149,8 +155,8 @@ func (h *Hufflepuff) buildFrequencyDict() error {
 	return nil
 }
 
-var magicBytesHeader = []byte("C47C0MPR35510N")
-var byteDelimiter = []byte("##!dd9a202294dc381a456fceb62f!##")
+var magicBytesHeader = []byte("=^･ｪ･^=")
+var byteDelimiter = []byte("_(ツ)_")
 
 type frequencyDict map[rune]int
 
@@ -211,33 +217,43 @@ func (h *Hufflepuff) getDictionaryJSON() ([]byte, error) {
 	return json.Marshal(h.decodingDict)
 }
 
+func (h *Hufflepuff) writeCodeword(w *bitstream.BitWriter, cw string) error {
+	for _, c := range cw {
+		if c == '1' {
+			if err := w.WriteBit(true); err != nil {
+				return err
+			}
+		} else {
+			if err := w.WriteBit(false); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // EncodeToFile encodes to a file directly.
 func (h *Hufflepuff) EncodeToFile(f *os.File) error {
 	defer f.Close()
 	if !h.hasInit {
 		return fmt.Errorf("Encode called without initialization")
 	}
-	if len(h.encodingDict) == 1 {
-		// if there's just a single char, we can't do any better
-		return fmt.Errorf("file contains single character, compression makes bigger")
-	}
 	r, err := h.getReader()
 	if err != nil {
 		return err
 	}
+	bnw := bitstream.NewWriter(f)
 	ch, _, err := r.ReadRune()
 	for err != io.EOF {
 		enc, ok := h.encodingDict[ch]
 		if !ok {
 			log.Fatalf("no codeword for %x", string(ch))
 		}
-		numWritten, err := f.WriteString(enc)
-		if err != nil {
-			log.Fatalf("write err: %s", err)
-		}
-		h.bytesWritten += int64(numWritten)
+		h.writeCodeword(bnw, enc)
 		ch, _, err = r.ReadRune()
 		if err == io.EOF {
+			h.writeCodeword(bnw, h.encodingDict[runeEOF])
+			bnw.Flush(true)
 			return nil
 		}
 	}
@@ -349,24 +365,23 @@ func (h *Hufflepuff) Encode() ([]byte, error) {
 	if !h.hasInit {
 		return nil, fmt.Errorf("Encode called without initialization")
 	}
-	if len(h.encodingDict) == 1 {
-		// if there's just a single char, we can't do any better
-		return h.encStr, nil
-	}
 	r, err := h.getReader()
 	if err != nil {
 		return nil, err
 	}
-	writeBuf := bytes.NewBuffer([]byte{})
+	var writeBuf bytes.Buffer
+	bnw := bitstream.NewWriter(&writeBuf)
 	ch, _, err := r.ReadRune()
 	for err != io.EOF {
 		enc, ok := h.encodingDict[ch]
 		if !ok {
 			log.Fatalf("no codeword for %s", string(ch))
 		}
-		writeBuf.WriteString(enc)
+		h.writeCodeword(bnw, enc)
 		ch, _, err = r.ReadRune()
 		if err == io.EOF {
+			h.writeCodeword(bnw, h.encodingDict[runeEOF])
+			bnw.Flush(true)
 			break
 		}
 	}
@@ -375,11 +390,6 @@ func (h *Hufflepuff) Encode() ([]byte, error) {
 
 // DecodeFromFile decodes the huffman coded string d given h.decodingDict.
 func (h *Hufflepuff) DecodeFromFile() ([]byte, error) {
-	if len(h.decodingDict) == 1 {
-		// if there's just a single char, we can't do any better
-		return h.encStr, nil
-	}
-
 	filePtr, err := h.getFilePtr()
 	if err != nil {
 		return nil, err
@@ -389,25 +399,40 @@ func (h *Hufflepuff) DecodeFromFile() ([]byte, error) {
 		return nil, err
 	}
 	h.file = filePtr
-	r := bufio.NewReader(h.file)
+	bnw := bitstream.NewReader(h.file)
 	var buf bytes.Buffer
-	var match bytes.Buffer
-	b, err := r.ReadByte()
+	match := ""
+	b, err := bnw.ReadBit()
+	if err != nil && err != io.EOF {
+		log.Fatalf("ReadBit: %s", err)
+	}
 	for err != io.EOF {
-		match.WriteByte(b)
-		out, ok := h.decodingDict[match.String()]
+		if b == false {
+			match += "0"
+		} else {
+			match += "1"
+		}
+		out, ok := h.decodingDict[match]
 		if !ok {
-			b, err = r.ReadByte()
+			b, err = bnw.ReadBit()
+			if err != nil && err != io.EOF {
+				log.Fatalf("ReadBit: %s", err)
+			}
 			continue
 		}
+		if out == runeEOF {
+			break
+		}
+
 		_, err := buf.WriteRune(out)
 		if err != nil {
 			log.Fatalf("write err: %s", err)
 		}
-		match.Reset()
-		b, err = r.ReadByte()
-		if err == io.EOF {
-			break
+
+		match = ""
+		b, err = bnw.ReadBit()
+		if err != nil && err != io.EOF {
+			log.Fatalf("ReadBit: %s", err)
 		}
 	}
 	return buf.Bytes(), nil
@@ -415,20 +440,43 @@ func (h *Hufflepuff) DecodeFromFile() ([]byte, error) {
 
 // DecodeBytes decodes the huffman coded string d given h.decodingDict.
 func (h *Hufflepuff) DecodeBytes(d []byte) ([]byte, error) {
-	if len(h.decodingDict) == 1 {
-		// if there's just a single char, we can't do any better
-		return h.encStr, nil
-	}
 	var buf bytes.Buffer
-	var match bytes.Buffer
-	for idx := 0; idx < len(d); idx++ {
-		match.WriteByte(d[idx])
-		out, ok := h.decodingDict[match.String()]
+	match := ""
+	bnw := bitstream.NewReader(bytes.NewBuffer(d))
+	b, err := bnw.ReadBit()
+	if err != nil && err != io.EOF {
+		log.Fatalf("ReadBit: %s", err)
+	}
+	for err != io.EOF {
+		if b == false {
+			match += "0"
+		} else {
+			match += "1"
+		}
+		out, ok := h.decodingDict[match]
 		if !ok {
+			b, err = bnw.ReadBit()
+			if err != nil && err != io.EOF {
+				log.Fatalf("ReadBit: %s", err)
+			}
 			continue
 		}
-		buf.WriteRune(out)
-		match.Reset()
+		if out == runeEOF {
+			break
+		}
+
+		_, err := buf.WriteRune(out)
+		if err != nil {
+			log.Fatalf("write err: %s", err)
+		}
+
+		// got match
+		match = ""
+
+		b, err = bnw.ReadBit()
+		if err != nil && err != io.EOF {
+			log.Fatalf("ReadBit: %s", err)
+		}
 	}
 	return buf.Bytes(), nil
 }
@@ -451,11 +499,11 @@ type Hufflepuff struct {
 
 // NewHufflepuffInitBytes returns an initialized Hufflepuff with bytes s.
 func NewHufflepuffInitBytes(s []byte) (*Hufflepuff, error) {
-	var h Hufflepuff
-	if err := h.InitBytes(s); err != nil {
+	var th Hufflepuff
+	if err := th.InitBytes(s); err != nil {
 		return nil, err
 	}
-	return &h, nil
+	return &th, nil
 }
 
 // NewHufflepuffInitFile initializes Hufflepuff with a file handle.
