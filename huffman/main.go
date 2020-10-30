@@ -17,8 +17,8 @@ import (
 
 const runeEOF = '见'
 
-// HuffmanCoder represents a huffman encoding object.
-type HuffmanCoder interface {
+// Coder represents a Huffman encoding object.
+type Coder interface {
 	Init() error
 	Encode() ([]byte, error)
 	DecodeBytes([]byte) ([]byte, error)
@@ -260,10 +260,6 @@ func (h *Huffandpuff) EncodeToFile(f *os.File) error {
 	return nil
 }
 
-// func (h *Huffandpuff) hasMagicBytes(f *os.File) bool {
-// 	ctRead, err := f.Read(len(magicBytesHeader))
-// }
-
 func (h *Huffandpuff) getFilePtr() (*os.File, error) {
 	if h.filename == "" {
 		return nil, fmt.Errorf("filename not set")
@@ -312,6 +308,7 @@ func (h *Huffandpuff) FromFile(filename string) error {
 	return nil
 }
 
+// GetDict returns the decoding dictionary
 func (h *Huffandpuff) GetDict() map[string]rune {
 	return h.decodingDict
 }
