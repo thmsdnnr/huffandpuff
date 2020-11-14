@@ -1,0 +1,55 @@
+# huffandpuff
+
+huffandpuff is a [Huffman Coding](https://en.wikipedia.org/wiki/Huffman_coding) compression program written in Go.
+
+It can be used to for the lossless compression and decompression of files.
+
+It's just a toy project to learn about compression and some more Go.
+
+You should use a real compression program instead. Please don't use this program with any data you love.
+
+The dictionary is stored in human-readable stringified-JSON format as a header in the compressed file. For example, here's what my Shakespeare Huffman tree looks like:
+
+The most common letters are `SPACE` `d` `c` `E` `v` `o` `f` `T` `C`.
+
+```
+=^･ｪ･^={"hd":{"00":32,"01000":100,"010010":99,"0100110":69,"0100111":118,"0101":111,"011000":102,"0110010":84,"01100110":67,"011001110":71,"011001111":80,"01101":108,"0111":116,"100000":119,"100001":46,"10001":13,"10010":10,"10011000":76,"1001100100":95,"10011001010":113,"10011001011000":41,"10011001011001":40,"100110010110100":51,"100110010110101":48,"10011001011011":8216,"10011001011100":8221,"10011001011101":49,"10011001011110":88,"1001100101111100":55,"1001100101111101":57,"100110010111111":52,"100110011":63,"1001101":65,"100111":121,"101000":44,"101001000":70,"1010010010":75,"1010010011":45,"10100101":82,"1010011":98,"1010100":112,"10101010":78,"101010110":85,"10101011100":106,"10101011101":86,"10101011110":91,"10101011111":93,"101011":109,"1011":101,"11000":105,"11001":114,"1101000":73,"110100100":68,"110100101":66,"11010011":79,"110101000":77,"110101001":39,"11010101":83,"1101011":103,"11011":110,"11100":115,"11101":104,"111100":117,"1111010000":89,"111101000100":8212,"111101000101":74,"11110100011000":8220,"1111010001100100":34,"1111010001100101":53,"111101000110011":50,"11110100011010":90,"11110100011011000":38,"1111010001101100100":224,"111101000110110010100":198,"1111010001101100101010":226,"1111010001101100101011":36,"11110100011011001011000":35265,"11110100011011001011001":96,"11110100011011001011010":65279,"11110100011011001011011":64,"11110100011011001011100":238,"11110100011011001011101":124,"11110100011011001011110":37,"11110100011011001011111":35,"111101000110110011":42,"1111010001101101":56,"1111010001101110":54,"111101000110111100":232,"111101000110111101":233,"11110100011011111000":231,"111101000110111110010":339,"111101000110111110011":201,"111101000110111110100":234,"11110100011011111010100":92,"11110100011011111010101":125,"1111010001101111101011":9,"11110100011011111011":47,"111101000110111111":230,"1111010001110":81,"1111010001111":122,"111101001":87,"11110101":107,"111101100":8217,"111101101":72,"111101110":59,"1111011110":33,"11110111110":58,"11110111111":120,"11111":97}}_(ツ)_
+```
+
+## how to use
+
+Build with `make build`
+
+Test with `make test`
+
+Compress with
+```
+./huff -c -in inputFile -out optionalOutputFile (otherwise stdout)
+```
+
+Decompress with
+```
+./huff -c -in inputFile -out optionalOutputFile (otherwise stdout)
+```
+
+### performance (lol)
+
+`shakespeare` is a 169,442 line file containing "Project Gutenberg’s The Complete Works of William Shakespeare, by William Shakespeare". [link here](http://www.gutenberg.org/files/100/100-0.txt)
+
+```
+time ./huff -c -in shakespeare > shakespeare-compressed  1.97s user 4.14s system 100% cpu 6.060 total
+time ./huff -d -in shakespeare-compressed > shakespeare-decompressed  2.88s user 1.01s system 107% cpu 3.631 total
+
+Running on i7 12 core CPU
+So it's not that fast :) About 18 times slower than gzip.
+
+Original:   5,767,184 bytes
+Compressed: 3,440,980 bytes
+
+Compression ratio: 1.68:1
+```
+
+## future fun feature ideas
+* LZW
+* Make bit-writing more performant
+* Compactify the dictionary representation more

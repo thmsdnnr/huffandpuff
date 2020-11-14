@@ -20,7 +20,9 @@ EOF
 "$HBIN" -d -in "$testEnc" -out "$testDec"
 
 if ! cmp "$testFile" "$testDec"; then
-  echo "mismatch"
+  echo "TEST FAILURE: mismatch"
 fi
 
 rm "$testFile" "$testEnc" "$testDec"
+
+echo "ok"

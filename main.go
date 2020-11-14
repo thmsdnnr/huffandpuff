@@ -56,10 +56,6 @@ func main() {
 	flag.BoolVar(&compress, "c", false, "compress infile")
 	flag.BoolVar(&decompress, "d", false, "decompress infile")
 	flag.Parse()
-	// inputFile := "./100-0.txt"
-	// outputFile := "./testingfoo.txt"
-	// stdOut := "/dev/stdout"
-	// fooOut := "./foo.txt"
 	if inputFile == "" {
 		flag.Usage()
 		os.Exit(1)
