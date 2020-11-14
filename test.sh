@@ -1,4 +1,8 @@
 #!/bin/bash
+# This file tests the Huffman encoder.
+# Run with ./test.sh
+# Exit status should be 0.
+# Echo $? to confirm this.
 
 cwd="$(pwd)"
 
